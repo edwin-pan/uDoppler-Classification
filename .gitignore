@@ -1,0 +1,9 @@
+# Ignoring data files
+data
+
+# Ignoring extras (pictures, examples)
+extras
+
+# Ignoring miscellaneous
+.ipynb_checkpoints
+func/__pycache__
