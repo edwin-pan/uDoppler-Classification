@@ -1,6 +1,5 @@
 import numpy as np
 import mmwave.dsp as dsp
-from mmwave.dataloader import DCA1000
 import matplotlib.pyplot as plt
 
 plt.close("all")
@@ -16,20 +15,42 @@ if __name__ == '__main__':
     chirpPeriod = 0.06 # unit?
     numFrames = 500
     range_resolution, doppler_resolution, uDoppler, thetaData = generate_spectrum_from_RDC('./data/uDoppler1.bin', accumulate=False, save_full=True)
-    mv.microdoppler_visualizer(uDoppler)
+    thetaData = thetaData[:,:,:8,:] # Keep only the azimuth information
+    # Note: uDoppler = (doppler, range, time)
+    # Note: thetaData = (Frame, range, Vrx, doppler)
+    # mv.microdoppler_visualizer(uDoppler)
     rangeDoppler = uDoppler.transpose(2,1,0)
 
-    # Select them ranges
-    uDoppler_processed = rs.range_doppler_selection(rangeDoppler, threshold=0.75)
-#    uDoppler_range_pro = rs.range_selection(rangeDoppler, threshold=0.75)
+    # Select Method to use for generating "clean" microdoppler plots
+# =============================================================================
+#       range_doppler_flag = True   : Will accumulate using thresholded range & doppler axis
+#       range_doppler_flag = False  : Will accumulate using thresholded range axis
+# =============================================================================
+    range_doppler_flag = True
+    capon_flag = True
+
+    if range_doppler_flag:
+        uDoppler_processed = rs.range_doppler_selection(rangeDoppler, threshold=0.75)
+        # mv.stitch_visualizer(uDoppler_processed, chirpPeriod, doppler_resolution) # optional cmap_plot='viridis'
+    else:
+        uDoppler_range_pro = rs.range_selection(rangeDoppler, threshold=0.75)
+        # mv.stitch_visualizer(uDoppler_range_pro, chirpPeriod, doppler_resolution) # optional cmap_plot='viridis'
     
-    # Take a look at them ranges
-    mv.stitch_visualizer(uDoppler_processed, chirpPeriod, doppler_resolution)
-#    mv.stitch_visualizer(uDoppler_range_pro, chirpPeriod, doppler_resolution)
-#    mv.stitch_visualizer(np.sum(uDoppler, axis=1), chirpPeriod, doppler_resolution, cmap_plot='viridis')
+    # --- Get theta info ---
+    # Generate Steering Vector
+    num_vec, steering_vector = dsp.gen_steering_vec(90,1,8)
     
-    # Now to get the theta info
-    
+    # Integrate Theta info into RDC
+    scan_aoa_capon = np.zeros((numFrames,uDoppler.shape[1],181))
+    for f in range(numFrames):
+        for r in range(uDoppler.shape[1]):
+            if capon_flag:
+                scan_aoa_capon[f,r,:], _ = dsp.aoa_capon(thetaData[f,r,:,:], steering_vector, magnitude=True)
+            else:
+                scan_aoa_capon[f,r,:] = np.abs(dsp.aoa_bartlett(steering_vector, np.sum(thetaData[f,r,:,:],axis=1, keepdims=True), axis=0)).squeeze()
+
+    scan_aoa_capon = 20*np.log10(scan_aoa_capon)
+    mv.range_azimuth_visualizer(scan_aoa_capon)
     
 #    # --- Begin PCA Process ---
 #    nFeatures = 3

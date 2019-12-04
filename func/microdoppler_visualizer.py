@@ -49,7 +49,7 @@ def microdoppler_visualizer(uDoppler):
     button.on_clicked(reset)
     
     plt.show()
-    
+
     
 def stitch_visualizer(uDoppler, chirp_period, doppler_resolution, title='uDoppler w/ range selection', cmap_plot='jet'):
     plt.figure()
@@ -57,3 +57,38 @@ def stitch_visualizer(uDoppler, chirp_period, doppler_resolution, title='uDopple
     plt.title(title)
     plt.ylabel("Doppler (m/s)")
     plt.xlabel("Time (s)")
+
+
+def range_azimuth_visualizer(x):
+    from matplotlib.widgets import Slider, Button
+    
+    x = x/x.max() # Scale to [0,1]
+
+    fig, ax1 = plt.subplots(1,1)
+
+    img1 = ax1.imshow(x[0], aspect='auto', vmin=0.0, vmax=1.0)
+    ax1.set_title('Range Azimuth Plot')
+        
+    axcolor = 'white'
+
+    time_idx = plt.axes([0.25, 0.1, 0.65, 0.03], facecolor=axcolor)
+
+    trange = Slider(time_idx, 'Time', 1, x.shape[0]-1, valinit=0, valstep=1)    
+            
+    def update(val):
+
+        t = int(trange.val)
+        img1.set_data(x[t])
+        # img1.autoscale()
+
+        fig.canvas.draw_idle()
+    trange.on_changed(update)
+    
+    resetax = plt.axes([0.8, 0.025, 0.1, 0.04])
+    button = Button(resetax, 'Reset', color=axcolor, hovercolor='0.975')
+    
+    def reset(event):
+        trange.reset()
+    button.on_clicked(reset)
+    
+    plt.show()
