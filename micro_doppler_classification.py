@@ -43,5 +43,9 @@ print("[NOTE] Data Loading Complete")
 
 print("[NOTE] Loading Labels")
 testLabelNoCar = sio.loadmat('data/mathworks/test/testLabelNoCar.mat')
-testLabelNoCar = testLabelNoCar[list(testLabelNoCar.keys())[-1]] # Bug
+testLabelNoCar = testLabelNoCar[list(testLabelNoCar.keys())[-1]]
 print("[NOTE] Label Loading Complete")
+
+# =============================================================================
+# 
+# =============================================================================

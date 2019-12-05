@@ -14,4 +14,5 @@ save('data/mathworks/test/testDataNoCar_3.mat', 'testDataNoCar_3')
 save('data/mathworks/test/testDataNoCar_4.mat', 'testDataNoCar_4')
 save('data/mathworks/test/testDataNoCar_5.mat', 'testDataNoCar_5')
 
-save('data/mathworks/test/testLabelNoCar.mat', 'testLabelNoCar')
+testLabelNoCartString = char(testLabelNoCar);
+save('data/mathworks/test/testLabelNoCar.mat', 'testLabelNoCartString')
