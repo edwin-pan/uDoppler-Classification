@@ -32,7 +32,7 @@ trainDataBic = []
 trainLabelPed = []
 trainLabelBic = []
 
-sets = 2
+sets = 5
 setSize = 1000
 if load_data_flag:
     print("[NOTE] ---------- Loading Data ----------")
@@ -58,11 +58,11 @@ if load_data_flag:
         testDataNoCar = sio.loadmat('data/mathworks/test/testDataNoCar_'+str(i+1)+'.mat')
         data = np.array(testDataNoCar[list(testDataNoCar.keys())[-1]].squeeze()).transpose(2,0,1)
         print("[NOTE] Loaded data subset ", i)
-        trainLabelPed.append(testLabelNoCar[indicesPed[i*setSize:(i+1)*setSize]])
-        trainDataPed.append(data[indicesPed[(indicesPed >= (i)) & (indicesPed < (i+1))]])
+        trainLabelPed.extend(testLabelNoCar[indicesPed[(indicesPed >= (i*setSize)) & (indicesPed < (i+1)*setSize)]])
+        trainDataPed.extend(data[indicesPed[(indicesPed >= (i*setSize)) & (indicesPed < (i+1)*setSize)]-(i*setSize)])
     
     trainDataPed = np.array(trainDataPed)
-#    trainLabelPed = np.array(trainLabelPed)
+    trainLabelPed = np.array(trainLabelPed)
 
     print("[NOTE] ---------- Data Loading Complete ----------")
 
@@ -70,7 +70,7 @@ if load_data_flag:
 #mv.classification_data_visualizer(data,label=testLabelNoCar)
 
 # Check to see the data
-mv.classification_data_visualizer(trainDataBic, trainLabelBic)
+mv.classification_data_visualizer(trainDataPed, trainLabelPed)
 
 # =============================================================================
 # Image Classification Problem
