@@ -27,6 +27,11 @@ load_data_flag = True
 # Load data
 # =============================================================================
 data = []
+trainDataPed = []
+trainDataBic = []
+trainLabelPed = []
+trainLabelBic = []
+
 sets = 2
 setSize = 1000
 if load_data_flag:
@@ -37,6 +42,12 @@ if load_data_flag:
     testLabelNoCar = testLabelNoCar[list(testLabelNoCar.keys())[-1]].squeeze()
     print("[NOTE] Label Loading Complete")
     
+    # Grab only Single Pedestrian data
+    indicesPed = np.where(testLabelNoCar == np.str_('ped    '))[0]     # Get all indices
+
+    # Grab only Single Bike data
+    indicesBic = np.where(testLabelNoCar == np.str_('bic    '))[0]     # Get all indices
+
     print("[NOTE] Loading Time & Frequency Data")
     TF = sio.loadmat('data/mathworks/TF.mat')
     T = TF[list(TF.keys())[-1]].squeeze()
@@ -45,25 +56,18 @@ if load_data_flag:
 
     for i in range(sets):
         testDataNoCar = sio.loadmat('data/mathworks/test/testDataNoCar_'+str(i+1)+'.mat')
-        data.append(testDataNoCar[list(testDataNoCar.keys())[-1]].squeeze())
+        data = np.array(testDataNoCar[list(testDataNoCar.keys())[-1]].squeeze()).transpose(2,0,1)
         print("[NOTE] Loaded data subset ", i)
-         
-    data = np.array(data).transpose(0,3,1,2).reshape((sets*setSize,400,144))
-   
+        trainLabelPed.append(testLabelNoCar[indicesPed[i*setSize:(i+1)*setSize]])
+        trainDataPed.append(data[indicesPed[(indicesPed >= (i)) & (indicesPed < (i+1))]])
+    
+    trainDataPed = np.array(trainDataPed)
+#    trainLabelPed = np.array(trainLabelPed)
+
     print("[NOTE] ---------- Data Loading Complete ----------")
 
 # Check to see the data
 #mv.classification_data_visualizer(data,label=testLabelNoCar)
-
-# Grab only Single Pedestrian data
-indices = np.where(testLabelNoCar == np.str_('ped    '))[0]     # Get all indices
-trainDataPed = data[indices[indices<sets*setSize]]              # Only keep indices within subset of chosen data
-trainLabelPed = testLabelNoCar[indices[indices<sets*setSize]]
-
-# Grab only Single Bike data
-indices = np.where(testLabelNoCar == np.str_('bic    '))[0]     # Get all indices
-trainDataBic = data[indices[indices<sets*setSize]]              # Only keep indices within subset of chosen data
-trainLabelBic = testLabelNoCar[indices[indices<sets*setSize]]
 
 # Check to see the data
 mv.classification_data_visualizer(trainDataBic, trainLabelBic)
