@@ -68,17 +68,57 @@ def range_azimuth_visualizer(x):
 
     img1 = ax1.imshow(x[0], aspect='auto', vmin=0.0, vmax=1.0)
     ax1.set_title('Range Azimuth Plot')
-        
+    fig.colorbar(img1)
     axcolor = 'white'
 
-    time_idx = plt.axes([0.25, 0.1, 0.65, 0.03], facecolor=axcolor)
+    plt.subplots_adjust(left=0.25, bottom=0.25)
 
+    time_idx = plt.axes([0.25, 0.1, 0.65, 0.03], facecolor=axcolor)
+    
     trange = Slider(time_idx, 'Time', 1, x.shape[0]-1, valinit=0, valstep=1)    
-            
+
     def update(val):
 
         t = int(trange.val)
         img1.set_data(x[t])
+        # img1.autoscale()
+
+        fig.canvas.draw_idle()
+    trange.on_changed(update)
+    
+    resetax = plt.axes([0.8, 0.025, 0.1, 0.04])
+    button = Button(resetax, 'Reset', color=axcolor, hovercolor='0.975')
+    
+    def reset(event):
+        trange.reset()
+    button.on_clicked(reset)
+    
+    plt.show()
+    
+
+def classification_data_visualizer(x, label):
+    from matplotlib.widgets import Slider, Button
+    
+    x = x/x.max() # Scale to [0,1]
+
+    fig, ax1 = plt.subplots(1,1)
+
+    img1 = ax1.imshow(x[0], aspect='auto', vmin=0.0, vmax=1.0)
+    ax1.set_title('MicroDoppler Spectrogram Plot')
+    fig.colorbar(img1)
+    axcolor = 'white'
+
+    plt.subplots_adjust(left=0.25, bottom=0.25)
+
+    time_idx = plt.axes([0.25, 0.1, 0.65, 0.03], facecolor=axcolor)
+
+    trange = Slider(time_idx, 'Sample', 1, x.shape[0]-1, valinit=0, valstep=1)    
+
+    def update(val):
+
+        t = int(trange.val)
+        img1.set_data(x[t])
+        ax1.set_title('MicroDoppler Spectrogram Plot: ' + label[t] + ' ' + str(t))
         # img1.autoscale()
 
         fig.canvas.draw_idle()
