@@ -16,33 +16,20 @@ import matplotlib.pyplot as plt
 #trainDataNoCar = sio.loadmat('data/mathworks/trainDataCarNoise')
 plt.close('all')
 load_data_flag = True
+
 # =============================================================================
 # Load data
 # =============================================================================
+data = []
+sets = 2
+setSize = 1000
 if load_data_flag:
-    print("[NOTE] Loading Data")
-    testDataNoCar_1 = sio.loadmat('data/mathworks/test/testDataNoCar_1.mat')
-    testDataNoCar_1 = testDataNoCar_1[list(testDataNoCar_1.keys())[-1]].squeeze()
-    print("[NOTE] Loaded data subset 1")
-    
-#    testDataNoCar_2 = sio.loadmat('data/mathworks/test/testDataNoCar_2.mat')
-#    testDataNoCar_2 = testDataNoCar_2[list(testDataNoCar_2.keys())[-1]].squeeze()
-#    print("[NOTE] Loaded data subset 2")
-#    
-#    testDataNoCar_3 = sio.loadmat('data/mathworks/test/testDataNoCar_3.mat')
-#    testDataNoCar_3 = testDataNoCar_3[list(testDataNoCar_3.keys())[-1]].squeeze()
-#    print("[NOTE] Loaded data subset 3")
-#    
-#    testDataNoCar_4 = sio.loadmat('data/mathworks/test/testDataNoCar_4.mat')
-#    testDataNoCar_4 = testDataNoCar_4[list(testDataNoCar_4.keys())[-1]].squeeze()
-#    print("[NOTE] Loaded data subset 4")
-#    
-#    testDataNoCar_5 = sio.loadmat('data/mathworks/test/testDataNoCar_5.mat')
-#    testDataNoCar_5 = testDataNoCar_5[list(testDataNoCar_5.keys())[-1]].squeeze()
-#    print("[NOTE] Loaded data subset 5")
-    
-    print("[NOTE] Data Loading Complete")
-    
+    print("[NOTE] ---------- Loading Data ----------")
+    for i in range(sets):
+        testDataNoCar = sio.loadmat('data/mathworks/test/testDataNoCar_'+str(i+1)+'.mat')
+        data.append(testDataNoCar[list(testDataNoCar.keys())[-1]].squeeze())
+        print("[NOTE] Loaded data subset ", i)
+         
     print("[NOTE] Loading Labels")
     testLabelNoCar = sio.loadmat('data/mathworks/test/testLabelNoCar.mat')
     testLabelNoCar = testLabelNoCar[list(testLabelNoCar.keys())[-1]].squeeze()
@@ -54,17 +41,30 @@ if load_data_flag:
     F = TF[list(TF.keys())[-2]].squeeze()
     print("[NOTE] T F Loading Complete")
 
+    data = np.array(data).transpose(0,3,1,2).reshape((sets*setSize,400,144))
+   
+    print("[NOTE] ---------- Data Loading Complete ----------")
+
 # Check to see the data
-mv.classification_data_visualizer(testDataNoCar_1.transpose(2,0,1), testLabelNoCar)
-# =============================================================================
-# 
-# =============================================================================
-    
-    
-#fig, ax = plt.subplots(figsize=(7,7))
-#img = ax.imshow(testDataNoCar_1[:,:,21])
-#fig.colorbar(img)
-#ax.set_xticks(list(range(1,T.shape[0],36)))
-#ax.set_yticks(list(range(1,F.shape[0],100)))
-#ax.set_xticklabels(T[list(range(1,T.shape[0],36))])
-#ax.set_yticklabels(F[list(range(1,F.shape[0],100))])
+#mv.classification_data_visualizer(data,label=testLabelNoCar)
+
+# Grab only Single Pedestrian data
+indices = np.where(testLabelNoCar == np.str_('ped    '))[0]     # Get all indices
+trainDataPed = data[indices[indices<sets*setSize]]              # Only keep indices within subset of chosen data
+trainLabelPed = testLabelNoCar[indices[indices<sets*setSize]]
+
+# Grab only Single Bike data
+indices = np.where(testLabelNoCar == np.str_('bic    '))[0]     # Get all indices
+trainDataBic = data[indices[indices<sets*setSize]]              # Only keep indices within subset of chosen data
+trainLabelBic = testLabelNoCar[indices[indices<sets*setSize]]
+
+# Check to see the data
+mv.classification_data_visualizer(trainDataBic, trainLabelBic)
+
+
+# Gaussian Mixture Model
+# PCA Feature Extraction
+
+
+# Hidden Markov Model -- Lecture 13, Slide 39
+

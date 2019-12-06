@@ -96,7 +96,7 @@ def range_azimuth_visualizer(x):
     plt.show()
     
 
-def classification_data_visualizer(x, label):
+def classification_data_visualizer(x, label=None):
     from matplotlib.widgets import Slider, Button
     
     x = x/x.max() # Scale to [0,1]
