@@ -99,11 +99,12 @@ def range_azimuth_visualizer(x):
 def classification_data_visualizer(x, label=None):
     from matplotlib.widgets import Slider, Button
     
-    x = x/x.max() # Scale to [0,1]
+    # x = x/x.max() # Scale to [0,1]
 
     fig, ax1 = plt.subplots(1,1)
 
-    img1 = ax1.imshow(x[0], aspect='auto', vmin=0.0, vmax=1.0)
+    # img1 = ax1.imshow(x[0], aspect='auto', vmin=0.0, vmax=1.0)
+    img1 = ax1.imshow(x[0], aspect='auto')
     ax1.set_title('MicroDoppler Spectrogram Plot')
     fig.colorbar(img1)
     axcolor = 'white'
@@ -131,4 +132,22 @@ def classification_data_visualizer(x, label=None):
         trange.reset()
     button.on_clicked(reset)
     
+    plt.show()
+
+
+def feature_viewer(x, nFeatures, n_row, n_col, title='PCA Features'):
+    """ Grid view of features extracted using PCA
+
+    """
+    fig, axs = plt.subplots(2, 8, sharex='all', sharey='all', figsize=(10, 10))
+    fig.suptitle(title, fontsize=16, x=0.55, y=0.9)
+
+    fig.subplots_adjust(hspace = 0.1, wspace=.1)
+
+    axs = axs.ravel()
+    for i in range(nFeatures):
+        axs[i].imshow(np.reshape(x[i], (n_row,n_col) ,'F'))
+        axs[i].set_title('Feature ' + str(i+1))
+        axs[i].axis('off')
+
     plt.show()

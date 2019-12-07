@@ -3,6 +3,7 @@ import numpy as np
 import mmwave.dsp as dsp
 from mmwave.dataloader import DCA1000
 import matplotlib.pyplot as plt
+import scipy as sc
 
 plt.close("all")
 
@@ -29,7 +30,7 @@ def PCA(x, nFeatures):
     """
 
     # Use SVD to grab top nFeatures number of eigenvectors
-    u, s, vh = np.linalg.svd(x)
+    u, s, vh = sc.linalg.svd(x)
     # PCA Feature Transform Matrix (Weight matrix)
     transform = vh[:nFeatures,:]
     # Numpy enforces sign conventions for Eigenvectors. Flip negative vectors
