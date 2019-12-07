@@ -4,6 +4,8 @@ Created on Wed Dec  4 18:26:06 2019
 
 @author: Edwin
 
+Purpose: This script takes the .mat data files provided by MathWorks and produces .npy data files.
+
 http://users.metu.edu.tr/ccandan//pub_dir/Padar_Ertan_Candan_Micro_Doppler_Classification__IEEE_Radar_2016.pdf
 
 Two approaches to classification problem:
@@ -27,7 +29,12 @@ load_data_flag = True
 # Load data
 # =============================================================================
 data = []
-sets = 2
+trainDataPed = []
+trainDataBic = []
+trainLabelPed = []
+trainLabelBic = []
+
+sets = 5
 setSize = 1000
 if load_data_flag:
     print("[NOTE] ---------- Loading Data ----------")
@@ -37,6 +44,12 @@ if load_data_flag:
     testLabelNoCar = testLabelNoCar[list(testLabelNoCar.keys())[-1]].squeeze()
     print("[NOTE] Label Loading Complete")
     
+    # Grab only Single Pedestrian data
+    indicesPed = np.where(testLabelNoCar == np.str_('ped    '))[0]     # Get all indices
+
+    # Grab only Single Bike data
+    indicesBic = np.where(testLabelNoCar == np.str_('bic    '))[0]     # Get all indices
+
     print("[NOTE] Loading Time & Frequency Data")
     TF = sio.loadmat('data/mathworks/TF.mat')
     T = TF[list(TF.keys())[-1]].squeeze()
@@ -45,28 +58,31 @@ if load_data_flag:
 
     for i in range(sets):
         testDataNoCar = sio.loadmat('data/mathworks/test/testDataNoCar_'+str(i+1)+'.mat')
-        data.append(testDataNoCar[list(testDataNoCar.keys())[-1]].squeeze())
+        data = np.array(testDataNoCar[list(testDataNoCar.keys())[-1]].squeeze()).transpose(2,0,1)
         print("[NOTE] Loaded data subset ", i)
-         
-    data = np.array(data).transpose(0,3,1,2).reshape((sets*setSize,400,144))
-   
+        trainLabelPed.extend(testLabelNoCar[indicesPed[(indicesPed >= (i*setSize)) & (indicesPed < (i+1)*setSize)]])
+        trainDataPed.extend(data[indicesPed[(indicesPed >= (i*setSize)) & (indicesPed < (i+1)*setSize)]-(i*setSize)])
+        trainLabelBic.extend(testLabelNoCar[indicesBic[(indicesBic >= (i*setSize)) & (indicesBic < (i+1)*setSize)]])
+        trainDataBic.extend(data[indicesBic[(indicesBic >= (i*setSize)) & (indicesBic < (i+1)*setSize)]-(i*setSize)])
+        
+    trainDataPed = np.array(trainDataPed)
+    trainLabelPed = np.array(trainLabelPed)
+    trainDataBic = np.array(trainDataBic)
+    trainLabelBic = np.array(trainLabelBic)
+
     print("[NOTE] ---------- Data Loading Complete ----------")
 
 # Check to see the data
-#mv.classification_data_visualizer(data,label=testLabelNoCar)
-
-# Grab only Single Pedestrian data
-indices = np.where(testLabelNoCar == np.str_('ped    '))[0]     # Get all indices
-trainDataPed = data[indices[indices<sets*setSize]]              # Only keep indices within subset of chosen data
-trainLabelPed = testLabelNoCar[indices[indices<sets*setSize]]
-
-# Grab only Single Bike data
-indices = np.where(testLabelNoCar == np.str_('bic    '))[0]     # Get all indices
-trainDataBic = data[indices[indices<sets*setSize]]              # Only keep indices within subset of chosen data
-trainLabelBic = testLabelNoCar[indices[indices<sets*setSize]]
+mv.classification_data_visualizer(trainDataBic, trainLabelBic)
 
 # Check to see the data
-mv.classification_data_visualizer(trainDataBic, trainLabelBic)
+mv.classification_data_visualizer(trainDataPed, trainLabelPed)
+
+# Save as .npy
+np.save('data/mathworks/test/test_data_ped.npy',trainDataPed)
+np.save('data/mathworks/test/test_data_bic.npy',trainDataBic)
+np.save('data/mathworks/test/test_label_ped.npy',trainLabelPed)
+np.save('data/mathworks/test/test_label_bic.npy',trainLabelBic)
 
 # =============================================================================
 # Image Classification Problem
