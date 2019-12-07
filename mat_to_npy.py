@@ -1,3 +1,8 @@
+"""
+Purpose: This script takes the .mat data files provided by MathWorks and produces .npy data files.
+
+"""
+
 import numpy as np
 import func.microdoppler_visualizer as mv
 import scipy.io as sio

@@ -4,7 +4,6 @@ Created on Wed Dec  4 18:26:06 2019
 
 @author: Edwin
 
-Purpose: This script takes the .mat data files provided by MathWorks and produces .npy data files.
 
 http://users.metu.edu.tr/ccandan//pub_dir/Padar_Ertan_Candan_Micro_Doppler_Classification__IEEE_Radar_2016.pdf
 
@@ -23,10 +22,10 @@ import matplotlib.pyplot as plt
 plt.close('all')
 
 # Load data
-trainDataPed = np.load('data/mathworks/test/test_data_ped.npy')
-trainDataBic = np.load('data/mathworks/test/test_data_bic.npy')
-trainLabelPed = np.load('data/mathworks/test/test_label_ped.npy') 
-trainLabelBic = np.load('data/mathworks/test/test_label_bic.npy')
+trainDataPed = np.load('data/mathworks/test/test_data_ped.npy').astype(np.float32)[:10]
+trainDataBic = np.load('data/mathworks/test/test_data_bic.npy').astype(np.float32)[:10]
+trainLabelPed = np.load('data/mathworks/test/test_label_ped.npy')[:10]
+trainLabelBic = np.load('data/mathworks/test/test_label_bic.npy')[:10]
 
 # Vectorize "image" data
 trainDataPedVec = trainDataPed.reshape((trainDataPed.shape[0],-1), order='F')
@@ -40,7 +39,6 @@ nFeatures = 2
     # PCA Feature Extraction -- Compute Features via PCA using Mean Centered Ped & Bic spectrograms
 trainDataPedVecWeights, trainDataPedVecFeatures = pca.PCA(trainDataPedVec-np.mean(trainDataPedVec, axis=0), nFeatures)
 trainDataBicVecWeights, trainDataBicVecFeatures = pca.PCA(trainDataBicVec-np.mean(trainDataBicVec, axis=0), nFeatures)
-
 
 # 2) Convolutional Neural Net
 
