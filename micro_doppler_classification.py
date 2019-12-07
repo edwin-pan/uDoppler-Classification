@@ -4,6 +4,8 @@ Created on Wed Dec  4 18:26:06 2019
 
 @author: Edwin
 
+Purpose: This script takes the .mat data files provided by MathWorks and produces .npy data files.
+
 http://users.metu.edu.tr/ccandan//pub_dir/Padar_Ertan_Candan_Micro_Doppler_Classification__IEEE_Radar_2016.pdf
 
 Two approaches to classification problem:
