@@ -14,67 +14,34 @@ Two approaches to classification problem:
 
 import numpy as np
 import func.microdoppler_visualizer as mv
+import func.pca as pca
 import scipy.io as sio
 import matplotlib.pyplot as plt
     
-#testDataCarNoise = sio.loadmat('data/mathworks/testDataCarNoise')
-#trainDataCarNoise = sio.loadmat('data/mathworks/trainDataCarNoise')
-#trainDataNoCar = sio.loadmat('data/mathworks/trainDataCarNoise')
 plt.close('all')
-load_data_flag = True
 
-# =============================================================================
 # Load data
-# =============================================================================
-data = []
-sets = 2
-setSize = 1000
-if load_data_flag:
-    print("[NOTE] ---------- Loading Data ----------")
+trainDataPed = np.load('data/mathworks/test/test_data_ped.npy')
+trainDataBic = np.load('data/mathworks/test/test_data_bic.npy')
+trainLabelPed = np.load('data/mathworks/test/test_label_ped.npy') 
+trainLabelBic = np.load('data/mathworks/test/test_label_bic.npy')
 
-    print("[NOTE] Loading Labels")
-    testLabelNoCar = sio.loadmat('data/mathworks/test/testLabelNoCar.mat')
-    testLabelNoCar = testLabelNoCar[list(testLabelNoCar.keys())[-1]].squeeze()
-    print("[NOTE] Label Loading Complete")
-    
-    print("[NOTE] Loading Time & Frequency Data")
-    TF = sio.loadmat('data/mathworks/TF.mat')
-    T = TF[list(TF.keys())[-1]].squeeze()
-    F = TF[list(TF.keys())[-2]].squeeze()
-    print("[NOTE] T F Loading Complete")
-
-    for i in range(sets):
-        testDataNoCar = sio.loadmat('data/mathworks/test/testDataNoCar_'+str(i+1)+'.mat')
-        data.append(testDataNoCar[list(testDataNoCar.keys())[-1]].squeeze())
-        print("[NOTE] Loaded data subset ", i)
-         
-    data = np.array(data).transpose(0,3,1,2).reshape((sets*setSize,400,144))
-   
-    print("[NOTE] ---------- Data Loading Complete ----------")
-
-# Check to see the data
-#mv.classification_data_visualizer(data,label=testLabelNoCar)
-
-# Grab only Single Pedestrian data
-indices = np.where(testLabelNoCar == np.str_('ped    '))[0]     # Get all indices
-trainDataPed = data[indices[indices<sets*setSize]]              # Only keep indices within subset of chosen data
-trainLabelPed = testLabelNoCar[indices[indices<sets*setSize]]
-
-# Grab only Single Bike data
-indices = np.where(testLabelNoCar == np.str_('bic    '))[0]     # Get all indices
-trainDataBic = data[indices[indices<sets*setSize]]              # Only keep indices within subset of chosen data
-trainLabelBic = testLabelNoCar[indices[indices<sets*setSize]]
-
-# Check to see the data
-mv.classification_data_visualizer(trainDataBic, trainLabelBic)
+# Vectorize "image" data
+trainDataPedVec = trainDataPed.reshape((trainDataPed.shape[0],-1), order='F')
+trainDataBicVec = trainDataBic.reshape((trainDataBic.shape[0],-1), order='F')
 
 # =============================================================================
 # Image Classification Problem
 # =============================================================================
 # 1) Gaussian Mixture Model
-    # PCA Feature Extraction
+nFeatures = 2
+    # PCA Feature Extraction -- Compute Features via PCA using Mean Centered Ped & Bic spectrograms
+trainDataPedVecWeights, trainDataPedVecFeatures = pca.PCA(trainDataPedVec-np.mean(trainDataPedVec, axis=0), nFeatures)
+trainDataBicVecWeights, trainDataBicVecFeatures = pca.PCA(trainDataBicVec-np.mean(trainDataBicVec, axis=0), nFeatures)
+
 
 # 2) Convolutional Neural Net
+
 
 # =============================================================================
 # Frequency Varying Time Sequence Problem
