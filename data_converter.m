@@ -1,4 +1,4 @@
-load('data/mathworks/test/testDataNoCar.mat')
+load('data/mathworks/train/testDataNoCar.mat')
 
 % load('data/mathworks/trainDataNoCar.mat') % Too big!
 
@@ -16,4 +16,3 @@ save('data/mathworks/test/testDataNoCar_5.mat', 'testDataNoCar_5')
 
 testLabelNoCartString = char(testLabelNoCar);
 save('data/mathworks/test/testLabelNoCar.mat', 'testLabelNoCartString')
-

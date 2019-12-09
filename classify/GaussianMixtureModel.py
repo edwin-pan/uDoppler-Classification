@@ -56,3 +56,9 @@ class GaussianMixtureModel():
             probabilities[i] = utils.multivariate_normal_distrubution(inputWeights.T, self.means[i], self.covar[i])
             
         return probabilities
+
+    def plot_features(self):
+        """ Plot the generated features
+
+        """
+        

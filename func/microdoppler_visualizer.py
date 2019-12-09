@@ -139,14 +139,14 @@ def feature_viewer(x, nFeatures, n_row, n_col, title='PCA Features'):
     """ Grid view of features extracted using PCA
 
     """
-    fig, axs = plt.subplots(2, 8, sharex='all', sharey='all', figsize=(10, 10))
-    fig.suptitle(title, fontsize=16, x=0.55, y=0.9)
+    fig, axs = plt.subplots(4, 4, sharex='all', sharey='all', figsize=(10, 10))
+    fig.suptitle(title, fontsize=16, x=0.55, y=0.95)
 
-    fig.subplots_adjust(hspace = 0.1, wspace=.1)
+    fig.subplots_adjust(hspace = 0.15, wspace=.15)
 
     axs = axs.ravel()
     for i in range(nFeatures):
-        axs[i].imshow(np.reshape(x[i], (n_row,n_col) ,'F'))
+        axs[i].imshow(np.reshape(x[i], (n_row,n_col) ,'F'), aspect='auto', cmap='jet')
         axs[i].set_title('Feature ' + str(i+1))
         axs[i].axis('off')
 
