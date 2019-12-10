@@ -17,6 +17,7 @@ import numpy as np
 import func.microdoppler_visualizer as mv
 import func.pca as pca
 import func.utils as utils
+import classify.ConvolutionalNeuralNetwork as CNN
 import classify.GaussianMixtureModel as GMM
 import scipy.io as sio
 import matplotlib.pyplot as plt
@@ -60,9 +61,9 @@ testDataPedVec = testDataPed_ds.reshape((testDataPed_ds.shape[0],-1), order='F')
 testDataBicVec = testDataBic_ds.reshape((testDataBic_ds.shape[0],-1), order='F')
 
 # Check out the Downsampled data
-mv.classification_data_visualizer(trainDataPedVec.reshape((trainDataPedVec.shape[0],200,72), order='F'), trainLabelPed)
+#mv.classification_data_visualizer(trainDataPedVec.reshape((trainDataPedVec.shape[0],200,72), order='F'), trainLabelPed)
 
-## # ---
+## # --- Use for Feature Plots (PCA)
 #nFeatures = 16
 ## PCA Feature Extraction -- Compute Features via PCA using Mean Centered Ped & Bic spectrograms
 #trainDataPedVecWeights, trainDataPedVecFeatures = pca.PCA(trainDataPedVec-np.mean(trainDataPedVec, axis=0), nFeatures)
@@ -76,7 +77,7 @@ mv.classification_data_visualizer(trainDataPedVec.reshape((trainDataPedVec.shape
 ## mv.classification_data_visualizer(trainDataPedVecFeatures.reshape((nFeatures,200,72), order='F'), np.array([str(i) for i in range(nFeatures)]))
 #mv.feature_viewer(trainDataPedVecFeatures.reshape((nFeatures,200,72), order='F'),nFeatures, trainDataPed_ds.shape[1], trainDataPed_ds.shape[2], title='Pedestrian Features')
 #mv.feature_viewer(trainDataBicVecFeatures.reshape((nFeatures,200,72), order='F'),nFeatures, trainDataBic_ds.shape[1], trainDataBic_ds.shape[2], title='Bike Features')
-## # ---
+## # --- Use for Feature Plots (PCA)
 
 
 # =============================================================================
@@ -84,56 +85,68 @@ mv.classification_data_visualizer(trainDataPedVec.reshape((trainDataPedVec.shape
 # =============================================================================
 # 1) Gaussian Mixture Model
 
-nFeatures = 16
-nClasses = 2
-
-# Produce full set
-fullSet = np.concatenate((trainDataPedVec,trainDataBicVec), axis=0)
-fullSetLabel = np.concatenate((trainLabelPed,trainLabelBic), axis=0)
-
-# Generate mean and covariance for bike and pedestrian class
-gmm_classifier = GMM.GaussianMixtureModel(fullSet, nFeatures, 2, 1000)
-
-results = gmm_classifier.fit(fullSet)
-
-# Make a decision
-decision = np.argmax(results, axis=0)
-decisionLabeled = []
-for sample in decision:
-    if sample == 0:
-        decisionLabeled.append('ped    ')
-    elif sample == 1:
-        decisionLabeled.append('bic    ')
-decisionLabeled = np.array(decisionLabeled)
-
-# Calculate Statistics
-train_accuracy = np.mean(decisionLabeled == fullSetLabel)
-print("Training set accuracy: ", train_accuracy)
-
-# -- Now test
-testFullSet = np.concatenate((testDataPedVec,testDataBicVec), axis=0)
-testFullSetLabel = np.concatenate((testLabelPed,testLabelBic), axis=0)
-
-# Generate mean and covariance for bike and pedestrian class
-testResults = gmm_classifier.fit(testFullSet)
-
-# Make a decision
-testDecision = np.argmax(testResults, axis=0)
-testDecisionLabeled = []
-for sample in testDecision:
-    if sample == 0:
-        testDecisionLabeled.append('ped    ')
-    elif sample == 1:
-        testDecisionLabeled.append('bic    ')
-testDecisionLabeled = np.array(testDecisionLabeled)
-
-# Calculate Statistics
-test_accuracy = np.mean(testDecisionLabeled == testFullSetLabel)
-print("Testing set accuracy: ", test_accuracy)
+#nFeatures = 16
+#nClasses = 2
+#
+## Produce full set
+#fullSet = np.concatenate((trainDataPedVec,trainDataBicVec), axis=0)
+#fullSetLabel = np.concatenate((trainLabelPed,trainLabelBic), axis=0)
+#
+## Generate mean and covariance for bike and pedestrian class
+#gmm_classifier = GMM.GaussianMixtureModel(fullSet, nFeatures, 2, 1000)
+#
+#results = gmm_classifier.fit(fullSet)
+#
+## Make a decision
+#decision = np.argmax(results, axis=0)
+#decisionLabeled = []
+#for sample in decision:
+#    if sample == 0:
+#        decisionLabeled.append('ped    ')
+#    elif sample == 1:
+#        decisionLabeled.append('bic    ')
+#decisionLabeled = np.array(decisionLabeled)
+#
+## Calculate Statistics
+#train_accuracy = np.mean(decisionLabeled == fullSetLabel)
+#print("Training set accuracy: ", train_accuracy)
+#
+## -- Now test
+#testFullSet = np.concatenate((testDataPedVec,testDataBicVec), axis=0)
+#testFullSetLabel = np.concatenate((testLabelPed,testLabelBic), axis=0)
+#
+## Generate mean and covariance for bike and pedestrian class
+#testResults = gmm_classifier.fit(testFullSet)
+#
+## Make a decision
+#testDecision = np.argmax(testResults, axis=0)
+#testDecisionLabeled = []
+#for sample in testDecision:
+#    if sample == 0:
+#        testDecisionLabeled.append('ped    ')
+#    elif sample == 1:
+#        testDecisionLabeled.append('bic    ')
+#testDecisionLabeled = np.array(testDecisionLabeled)
+#
+## Calculate Statistics
+#test_accuracy = np.mean(testDecisionLabeled == testFullSetLabel)
+#print("Testing set accuracy: ", test_accuracy)
 
 
 # 2) Convolutional Neural Net
+# Produce train set
+trainSet = np.concatenate((trainDataPed_ds,trainDataBic_ds), axis=0)
+trainSetLabel = np.concatenate((trainLabelPed,trainLabelBic), axis=0)
+# Answer to the question: Is it a bike?
+trainSetLabel_binary = np.array([int('bic    '==elem) for elem in trainSetLabel])
 
+# Produce test set
+testSet = np.concatenate((testDataPed_ds,testDataBic_ds), axis=0)
+testSetLabel = np.concatenate((testLabelPed,testLabelBic), axis=0)
+# Answer to the question: Is it a bike?
+testSetLabel_binary = np.array([int('bic    '==elem) for elem in testSetLabel])
+
+_, result, net = CNN.fit(trainSet, trainSetLabel_binary, testSet, 10)
 
 # =============================================================================
 # Frequency Varying Time Sequence Problem
