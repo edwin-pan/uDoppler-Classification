@@ -14,6 +14,7 @@ Two approaches to classification problem:
 """
 
 import numpy as np
+import torch
 import func.microdoppler_visualizer as mv
 import func.pca as pca
 import func.utils as utils
@@ -130,23 +131,66 @@ testDataBicVec = testDataBic_ds.reshape((testDataBic_ds.shape[0],-1), order='F')
 #
 ## Calculate Statistics
 #test_accuracy = np.mean(testDecisionLabeled == testFullSetLabel)
-#print("Testing set accuracy: ", test_accuracy)
+#print("[GMM] Testing set accuracy: ", test_accuracy)
 
 
 # 2) Convolutional Neural Net
 # Produce train set
 trainSet = np.concatenate((trainDataPed_ds,trainDataBic_ds), axis=0)
 trainSetLabel = np.concatenate((trainLabelPed,trainLabelBic), axis=0)
+# Convert train set to torch tensor
+trainSet = torch.tensor(trainSet,dtype=torch.float32)
 # Answer to the question: Is it a bike?
 trainSetLabel_binary = np.array([int('bic    '==elem) for elem in trainSetLabel])
+trainSetLabel_bool = np.array([('bic    '==elem) for elem in trainSetLabel])
 
 # Produce test set
 testSet = np.concatenate((testDataPed_ds,testDataBic_ds), axis=0)
 testSetLabel = np.concatenate((testLabelPed,testLabelBic), axis=0)
+# Convert test set to torch tensor
+testSet = torch.tensor(testSet,dtype=torch.float32)
 # Answer to the question: Is it a bike?
-testSetLabel_binary = np.array([int('bic    '==elem) for elem in testSetLabel])
+testSetLabel_bool = np.array(['bic    '==elem for elem in testSetLabel])
 
-_, result, net = CNN.fit(trainSet, trainSetLabel_binary, testSet, 10)
+train_flag = False
+
+if train_flag:
+    _, net = CNN.fit(trainSet, trainSetLabel_binary, testSet, 10)
+else:
+    loss_fn = torch.nn.CrossEntropyLoss()
+    in_size = 0
+    out_size = 2
+    net = CNN.NeuralNet(0.03, loss_fn, in_size, out_size)
+    net.load_state_dict(torch.load('net.model'))
+
+net.eval()
+batch_size = 10
+
+# Begin - Train
+num_batch_train = trainSet.shape[0]//batch_size
+result_train = np.zeros((num_batch_train*batch_size,2))
+
+# Evaluate - Train
+for i in range(num_batch_train):
+    result_train[i*10:(i+1)*10] = net(trainSet[i*10:(i+1)*10]).detach().numpy()
+
+# Decide - Train
+decision_train = np.array([sample[0]<sample[1] for sample in result_train])
+train_accuracy = np.mean(decision_train == trainSetLabel_bool)
+print("[CNN] Training set accuracy: ", train_accuracy)  
+    
+# Begin - Test
+num_batch = testSet.shape[0]//batch_size
+result = np.zeros((num_batch*batch_size,2))
+
+# Evaluate - Test
+for i in range(num_batch):
+    result[i*10:(i+1)*10] = net(testSet[i*10:(i+1)*10]).detach().numpy()
+    
+# Decide - Test
+decision = np.array([sample[0]<sample[1] for sample in result])
+test_accuracy = np.mean(decision == testSetLabel_bool)
+print("[CNN] Testing set accuracy: ", test_accuracy)
 
 # =============================================================================
 # Frequency Varying Time Sequence Problem

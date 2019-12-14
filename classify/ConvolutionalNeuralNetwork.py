@@ -24,15 +24,17 @@ class NeuralNet(torch.nn.Module):
                                         torch.nn.MaxPool2d(2,2))
         
         # good one 8*8*128
-        self.model = torch.nn.Sequential(torch.nn.Linear(115200, 96),
+        self.model = torch.nn.Sequential(torch.nn.Linear(115200, 4096),
                                         torch.nn.Dropout(0.5),
                                         # torch.nn.BatchNorm1d(96),
                                         torch.nn.LeakyReLU(),
-                                        torch.nn.Linear(96, 32),
+                                        torch.nn.Linear(4096, 1024),
                                         # torch.nn.Dropout(0.5),
-                                        torch.nn.BatchNorm1d(32),
+                                        torch.nn.BatchNorm1d(512),
                                         torch.nn.LeakyReLU(),
-                                        torch.nn.Linear(32, out_size))
+                                        torch.nn.Linear(512,96),
+                                        torch.nn.LeakyReLU(),
+                                        torch.nn.Linear(96, out_size))
 
         # Learning rate
         self.lrate = lrate
@@ -42,8 +44,10 @@ class NeuralNet(torch.nn.Module):
 
         # Define optim for various gradient decent functions
         # self.optimizer = torch.optim.SGD(self.model.parameters(), lr=lrate, momentum=0.9)
-        self.optimizer = torch.optim.Adagrad(self.model.parameters(), lr=lrate)
+        self.optimizer = torch.optim.Adagrad(self.parameters(), lr=lrate)
 
+        #device = torch.device("cuda")
+        #model = CNN().to(device)
 
     def set_parameters(self, params):
         """ Set the parameters of your network
@@ -78,7 +82,7 @@ class NeuralNet(torch.nn.Module):
         # yy = self.CNN_layer2(yy)
 
         # Apply NN
-        y_ = yy.view((yy.shape[0],-1))
+        y_ = yy.view((yy.shape[0],-1)) # can also call torch.flatten(x, 1) -> this allows for "reshapping" inside sequential
         y_p = self.model(y_)
         return y_p # torch.ones(x.shape[0], 1)
 
@@ -108,7 +112,7 @@ class NeuralNet(torch.nn.Module):
         loss = self.loss_fn(y_p,y) + lr_reg*L2_reg
         
         # Calculate Error, perform backpropogation
-        self.model.zero_grad()
+        self.model.zero_grad() # Unessessary
         loss.backward()
 
         # Update gradients
@@ -165,9 +169,9 @@ def fit(train_set, train_labels, test_set, n_iter, batch_size=100):
     in_size=0
     print("Start training")
 
-    train_set = torch.tensor(train_set,dtype=torch.float32)
+    # train_set = torch.tensor(train_set,dtype=torch.float32)
     train_labels = torch.tensor(train_labels,dtype=torch.int64)
-    test_set = torch.tensor(test_set,dtype=torch.float32)
+    # test_set = torch.tensor(test_set,dtype=torch.float32)
 
     # train_NP = train_set.numpy()
     # train_TO = torch.from_numpy(train_NP)
@@ -179,7 +183,11 @@ def fit(train_set, train_labels, test_set, n_iter, batch_size=100):
     num_img = train_set.shape[0]
 
     loss_fn = torch.nn.CrossEntropyLoss()
-    net = NeuralNet(0.03, loss_fn, in_size, out_size)
+    
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    # net = NeuralNet(0.03, loss_fn, in_size, out_size).to_device()
+
+    net = NeuralNet(0.03, loss_fn, in_size, out_size).to(device)
 
     train_set = Normalize(train_set,sample=False)
     test_set = Normalize(test_set,sample=False)
@@ -202,8 +210,10 @@ def fit(train_set, train_labels, test_set, n_iter, batch_size=100):
         for i in range(num_batches):
             # idx = batcher(num_img, batch_size, debug=True,debug_iter=i)
             idx = batcher(num_img, batch_size, seed=int(np.random.rand()*100))
-            curr_set = train_set[idx]
-            curr_lab = train_labels[idx]
+            
+            curr_set = train_set[idx].to(device)
+            curr_lab = train_labels[idx].to(device)
+            
             for j in range(n_iter):
                 losses[j] = net.step(curr_set, curr_lab)
                 # print("[#"+str(i)+"] iter:"+str(j)+" Loss:"+str(losses[j]))
@@ -212,12 +222,14 @@ def fit(train_set, train_labels, test_set, n_iter, batch_size=100):
                 print('[%d, %5d] loss: %.3f' %
                     (i + 1, j + 1, losses[j]))
 
-    # Evaluate
-    net.eval()
-    yhats_raw = net(test_set).detach().numpy()
-    yhats = [sample[0]<sample[1] for sample in yhats_raw]
+    torch.save(net,"net.model")
+
+    # # Evaluate
+    # net.eval()
+    # yhats_raw = net(test_set).detach().numpy()
+    # yhats = [sample[0]<sample[1] for sample in yhats_raw]
     
-    # torch.save(net,"net.model")
 
     print("[LOSS]: ", min(losses),max(losses))
-    return losses, yhats, net
+    # return losses, yhats, net
+    return losses, net
