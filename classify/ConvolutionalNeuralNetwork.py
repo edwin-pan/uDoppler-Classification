@@ -15,26 +15,24 @@ class NeuralNet(torch.nn.Module):
         super(NeuralNet, self).__init__()
 
         # Convolutional Layers
-        self.CNN_layer1 = torch.nn.Sequential(torch.nn.Conv2d(1,32,5,stride=1, padding=2),
+        self.CNN_layer1 = torch.nn.Sequential(torch.nn.Conv2d(1,6,(5,72),stride=1, padding=2),
                                         torch.nn.LeakyReLU(),
                                         torch.nn.MaxPool2d(2,2))
 
-        self.CNN_layer2 = torch.nn.Sequential(torch.nn.Conv2d(32,64,5,stride=1, padding=2),
+        self.CNN_layer2 = torch.nn.Sequential(torch.nn.Conv2d(6,16,(5,72),stride=1, padding=2),
                                         torch.nn.LeakyReLU(),
                                         torch.nn.MaxPool2d(2,2))
         
-        # good one 8*8*128
-        self.model = torch.nn.Sequential(torch.nn.Linear(115200, 4096),
-                                        torch.nn.Dropout(0.5),
-                                        # torch.nn.BatchNorm1d(96),
-                                        torch.nn.LeakyReLU(),
-                                        torch.nn.Linear(4096, 1024),
-                                        # torch.nn.Dropout(0.5),
+        self.model = torch.nn.Sequential(torch.nn.Linear(1200, 512),
                                         torch.nn.BatchNorm1d(512),
+                                        torch.nn.Dropout(0.25),
                                         torch.nn.LeakyReLU(),
-                                        torch.nn.Linear(512,96),
+                                        torch.nn.Linear(512, 256),
+                                        torch.nn.BatchNorm1d(256),
+                                        torch.nn.Dropout(0.25),
                                         torch.nn.LeakyReLU(),
-                                        torch.nn.Linear(96, out_size))
+                                        torch.nn.Linear(256, out_size),
+                                        torch.nn.LeakyReLU())
 
         # Learning rate
         self.lrate = lrate

@@ -151,3 +151,17 @@ def feature_viewer(x, nFeatures, n_row, n_col, title='PCA Features'):
         axs[i].axis('off')
 
     plt.show()
+    
+
+def weight_viewer(weights, labels):
+    # Split data based on assignments
+    weights_class_1 = weights.T[labels=='ped    ']
+    weights_class_2 = weights.T[labels=='bic    ']
+    
+# Plot PCA Weights (2D)
+    plt.figure(figsize=(14,10))
+    plt.subplot(1,2,1)
+    colors = ['Blue', 'Orange']
+    plt.title("PCA Weights projected onto 2D")
+    plt.scatter(weights_class_1[:,0], weights_class_1[:,15], label='pedestrian', c=colors[0])
+    plt.scatter(weights_class_2[:,0], weights_class_2[:,15], label='bicyclist', c=colors[1])

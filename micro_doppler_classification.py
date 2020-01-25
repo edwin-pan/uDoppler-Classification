@@ -82,59 +82,85 @@ testDataBicVec = testDataBic_ds.reshape((testDataBic_ds.shape[0],-1), order='F')
 
 
 # =============================================================================
-# Image Classification Problem
-# =============================================================================
 # 1) Gaussian Mixture Model
+# =============================================================================
 
-#nFeatures = 16
-#nClasses = 2
-#
-## Produce full set
-#fullSet = np.concatenate((trainDataPedVec,trainDataBicVec), axis=0)
-#fullSetLabel = np.concatenate((trainLabelPed,trainLabelBic), axis=0)
-#
-## Generate mean and covariance for bike and pedestrian class
-#gmm_classifier = GMM.GaussianMixtureModel(fullSet, nFeatures, 2, 1000)
-#
-#results = gmm_classifier.fit(fullSet)
-#
-## Make a decision
-#decision = np.argmax(results, axis=0)
-#decisionLabeled = []
-#for sample in decision:
-#    if sample == 0:
-#        decisionLabeled.append('ped    ')
-#    elif sample == 1:
-#        decisionLabeled.append('bic    ')
-#decisionLabeled = np.array(decisionLabeled)
-#
-## Calculate Statistics
-#train_accuracy = np.mean(decisionLabeled == fullSetLabel)
-#print("Training set accuracy: ", train_accuracy)
-#
-## -- Now test
-#testFullSet = np.concatenate((testDataPedVec,testDataBicVec), axis=0)
-#testFullSetLabel = np.concatenate((testLabelPed,testLabelBic), axis=0)
-#
-## Generate mean and covariance for bike and pedestrian class
-#testResults = gmm_classifier.fit(testFullSet)
-#
-## Make a decision
-#testDecision = np.argmax(testResults, axis=0)
-#testDecisionLabeled = []
-#for sample in testDecision:
-#    if sample == 0:
-#        testDecisionLabeled.append('ped    ')
-#    elif sample == 1:
-#        testDecisionLabeled.append('bic    ')
-#testDecisionLabeled = np.array(testDecisionLabeled)
-#
-## Calculate Statistics
-#test_accuracy = np.mean(testDecisionLabeled == testFullSetLabel)
-#print("[GMM] Testing set accuracy: ", test_accuracy)
+nFeatures = 16
+nClasses = 2
+
+# Produce full set
+fullSet = np.concatenate((trainDataPedVec,trainDataBicVec), axis=0)
+fullSetLabel = np.concatenate((trainLabelPed,trainLabelBic), axis=0)
+
+trainingDataMean = np.mean(fullSet, axis=0)
+weights, features = pca.PCA(fullSet-trainingDataMean, nFeatures)
+        
+# mv.feature_viewer(features.reshape((nFeatures,200,72), order='F'),nFeatures, trainDataBic_ds.shape[1], trainDataBic_ds.shape[2], title='GMM Features')
+# mv.weight_viewer(weights, fullSetLabel)
+# assert 1 == 0
+
+# Generate mean and covariance for bike and pedestrian class
+gmm_classifier = GMM.GaussianMixtureModel(fullSet, nFeatures, 2, 1000)
+
+results = gmm_classifier.fit(fullSet)
+
+# Make a decision
+decision = np.argmax(results, axis=0)
+decisionLabeled = []
+for sample in decision:
+    if sample == 0:
+        decisionLabeled.append('ped    ')
+    elif sample == 1:
+        decisionLabeled.append('bic    ')
+decisionLabeled = np.array(decisionLabeled)
+
+# Calculate Statistics
+train_accuracy = np.mean(decisionLabeled == fullSetLabel)
+print("Training set accuracy: ", train_accuracy)
+
+# -- Now test
+testFullSet = np.concatenate((testDataPedVec,testDataBicVec), axis=0)
+testFullSetLabel = np.concatenate((testLabelPed,testLabelBic), axis=0)
+
+# Generate mean and covariance for bike and pedestrian class
+testResults = gmm_classifier.fit(testFullSet)
+
+# Make a decision
+testDecision = np.argmax(testResults, axis=0)
+testDecisionLabeled = []
+for sample in testDecision:
+    if sample == 0:
+        testDecisionLabeled.append('ped    ')
+    elif sample == 1:
+        testDecisionLabeled.append('bic    ')
+testDecisionLabeled = np.array(testDecisionLabeled)
+
+# Calculate Statistics
+bike_correct = 0
+bike_incorrect = 0
+ped_correct = 0
+ped_incorrect = 0
+for i in range(len(testDecisionLabeled)):
+    if testDecisionLabeled[i] == 'ped    ':
+        if testDecisionLabeled[i] == testFullSetLabel[i]:
+            ped_correct +=1
+        else:
+            ped_incorrect +=1
+    else:
+        if testDecisionLabeled[i] == testFullSetLabel[i]:
+            bike_correct +=1
+        else:
+            bike_incorrect +=1
+
+test_accuracy = np.mean(testDecisionLabeled == testFullSetLabel)
+print("[GMM] Testing set accuracy: ", test_accuracy)
 
 
+assert 1 == 0
+# =============================================================================
 # 2) Convolutional Neural Net
+# =============================================================================
+print("[CNN] Begin CNN Training & Testing")
 # Produce train set
 trainSet = np.concatenate((trainDataPed_ds,trainDataBic_ds), axis=0)
 trainSetLabel = np.concatenate((trainLabelPed,trainLabelBic), axis=0)
@@ -196,5 +222,3 @@ print("[CNN] Testing set accuracy: ", test_accuracy)
 # Frequency Varying Time Sequence Problem
 # =============================================================================
 # Hidden Markov Model -- Lecture 13, Slide 39
-
-# 
