@@ -57,8 +57,3 @@ class GaussianMixtureModel():
             
         return probabilities
 
-    def plot_features(self):
-        """ Plot the generated features
-
-        """
-        
