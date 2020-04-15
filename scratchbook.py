@@ -95,12 +95,12 @@ if __name__ == '__main__':
     # ax.scatter(x, y, z)
     
     plt.figure()
-    plt.imshow(np.sum(micro_doppler_data, axis=1).T, cmap='twilight_shifted',origin='lower',extent=(0,chirp_period*micro_doppler_data[:,120,:].shape[0],-micro_doppler_data[:,120,:].shape[1]*doppler_resolution/2,micro_doppler_data[:,120,:].shape[1]*doppler_resolution/2))
+    plt.imshow(np.sum(micro_doppler_data, axis=1).T, cmap='turbo',origin='lower',extent=(0,chirp_period*micro_doppler_data[:,120,:].shape[0],-micro_doppler_data[:,120,:].shape[1]*doppler_resolution/2,micro_doppler_data[:,120,:].shape[1]*doppler_resolution/2))
 
     plt.title("MicroDoppler Ranges Accumulated")
     plt.ylabel("Velocity (m/s)")
     plt.xlabel("Time (seconds)")
     plt.savefig('freq_time_view', bbox_inches = 'tight',pad_inches = 0.25)
     
-    plt.figure()
-    plt.imshow(np.sum(micro_doppler_data, axis=2).T, cmap='twilight_shifted',origin='lower',extent=(0,chirp_period*micro_doppler_data[:,120,:].shape[0], 0, micro_doppler_data[:,:,0].shape[1]*range_resolution/2))
+    # plt.figure()
+    # plt.imshow(np.sum(micro_doppler_data, axis=2).T, cmap='turbo',origin='lower',extent=(0,chirp_period*micro_doppler_data[:,120,:].shape[0], 0, micro_doppler_data[:,:,0].shape[1]*range_resolution/2))
